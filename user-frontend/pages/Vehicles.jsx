@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/store.jsx';
 import * as api from "../services/api.js";
@@ -19,6 +19,12 @@ export const Vehicles = () => {
   const [minSeats, setMinSeats] = useState(1);
 
   const { searchParams } = state;
+
+  // Check if search params are valid
+  const hasValidSearchParams = searchParams.startDate && 
+    searchParams.endDate && 
+    searchParams.fromLocation && 
+    searchParams.toLocation;
 
   // 🔹 Fetch available vehicles from backend
   useEffect(() => {
@@ -54,6 +60,14 @@ export const Vehicles = () => {
   }, [searchParams]);
 
   const handleBookNow = (vehicle) => {
+    // Check if search params are valid - user must select journey details first
+    if (!hasValidSearchParams) {
+      alert('Please select pickup/drop-off locations and dates from the home page first.');
+      navigate('/');
+      return;
+    }
+
+    // Allow viewing booking summary even without login (they can see the amount)
     dispatch({ type: 'SELECT_VEHICLE', payload: vehicle });
     navigate('/booking/summary');
   };
@@ -75,6 +89,14 @@ export const Vehicles = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Warning banner if no search params */}
+      {!hasValidSearchParams && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+          <span>⚠️</span>
+          <span>Please select your journey details (locations & dates) from the <a href="/" className="underline font-semibold">home page</a> to book a vehicle.</span>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-8">
 
         {/* Filters */}
@@ -105,7 +127,7 @@ export const Vehicles = () => {
             {/* Vehicle Type */}
             <div>
               <label className="font-bold text-sm mb-2 block">Vehicle Type</label>
-              {['All', 'CAR', 'BIKE', 'PICKUP', 'BUS', 'BOAT', 'HELICOPTER'].map(type => (
+              {['All', 'CAR', 'BIKE', 'SUV', 'BUS', 'BOAT', 'HELICOPTER'].map(type => (
                 <label key={type} className="flex items-center gap-2 text-sm">
                   <input
                     type="radio"
@@ -203,9 +225,15 @@ export const Vehicles = () => {
 
                     <button
                       onClick={() => handleBookNow(vehicle)}
-                      className="w-full bg-primary text-white py-2 rounded hover:bg-sky-600"
+                      disabled={!hasValidSearchParams}
+                      className={`w-full py-2 rounded flex items-center justify-center gap-2 ${
+                        hasValidSearchParams
+                          ? 'bg-primary text-white hover:bg-sky-600'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                      title={!hasValidSearchParams ? 'Please select journey details first' : ''}
                     >
-                      View & Book
+                      {!hasValidSearchParams ? 'Select Journey First' : 'View & Book'}
                     </button>
                   </div>
                 </div>
