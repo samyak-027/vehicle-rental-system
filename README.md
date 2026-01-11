@@ -218,10 +218,6 @@ curl -X POST http://localhost:5007/api/auth/login \
 4. Push to branch: `git push origin feature-name`
 5. Submit a pull request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🐛 Known Issues
 
 - Email service requires Gmail app password configuration
@@ -232,7 +228,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support and questions:
 - Create an issue on GitHub
-- Email: support@ridesurf.com
+- Email: surfyourride@gmail.com
 
 ## 🙏 Acknowledgments
 
