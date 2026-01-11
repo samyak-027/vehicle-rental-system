@@ -27,8 +27,7 @@
     "jwt",
     "booking-system"
   ],
-  "author": "Your Name",
-  "license": "MIT",
+  "author": "Samyak & Khush",
   "devDependencies": {
     "concurrently": "^7.6.0"
   },
@@ -38,10 +37,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ride-surf.git"
+    "url": "https://github.com/samyak-027/vehicle-rental-system.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/ride-surf/issues"
+    "url": "https://github.com/samyak-027/vehicle-rental-system/issue"
   },
-  "homepage": "https://github.com/yourusername/ride-surf#readme"
+  "homepage": "https://github.com/samyak-027/vehicle-rental-system#readme"
 }
