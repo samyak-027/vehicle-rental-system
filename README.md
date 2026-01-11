@@ -55,7 +55,7 @@ ride-surf/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/ride-surf.git
+git clone https://github.com/samyak-027/ride-surf.git
 cd ride-surf
 ```
 
@@ -178,8 +178,8 @@ cd admin-rentals && npm run dev
 
 ### Default Ports
 - Backend API: `http://localhost:5007`
-- User Frontend: `http://localhost:5173`
-- Admin Frontend: `http://localhost:5174`
+- User Frontend: `http://localhost:5174`
+- Admin Frontend: `http://localhost:5173`
 
 ## 🧪 Testing
 
@@ -242,4 +242,4 @@ For support and questions:
 
 ---
 
-**Made with ❤️ by [Your Name]**
+**Made with ❤️ by Team RideSurf!**
