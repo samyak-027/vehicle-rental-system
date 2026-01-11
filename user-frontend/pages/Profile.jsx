@@ -1,23 +1,44 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useStore } from "../context/store.jsx";
 import * as api from "../services/api.js";
-import { Upload, Check, Clock, XCircle, User } from "lucide-react";
+import { Check, Clock, XCircle, User, Camera, Loader2 } from "lucide-react";
 
 export const Profile = () => {
   const { state, dispatch } = useStore();
   const [bookings, setBookings] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
   const [frontFile, setFrontFile] = useState(null);
   const [backFile, setBackFile] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const fileInputRef = useRef(null);
 
-  const user = state.auth.user;
+  const user = userData || state.auth.user;
 
   /* =======================
-     FETCH USER BOOKINGS
+     FETCH USER DATA & BOOKINGS
   ======================= */
   useEffect(() => {
-    if (user) fetchBookings();
-  }, [user]);
+    if (state.auth.user) {
+      fetchUserData();
+      fetchBookings();
+    }
+  }, [state.auth.user]);
+
+  const fetchUserData = async () => {
+    try {
+      const res = await api.getUserProfile();
+      if (res.data.success) {
+        setUserData(res.data.user);
+        dispatch({
+          type: "UPDATE_USER",
+          payload: res.data.user,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch user data", err);
+    }
+  };
 
   const fetchBookings = async () => {
     try {
@@ -25,6 +46,57 @@ export const Profile = () => {
       setBookings(res.data.bookings || []);
     } catch (err) {
       console.error("Failed to fetch bookings", err);
+    }
+  };
+
+  /* =======================
+     PROFILE PICTURE UPLOAD
+  ======================= */
+  const handleProfilePictureClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleProfilePictureChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size should be less than 5MB");
+      return;
+    }
+
+    try {
+      setUploadingPicture(true);
+      const formData = new FormData();
+      formData.append("profilePicture", file);
+
+      const res = await api.uploadProfilePicture(formData);
+      
+      if (res.data.success) {
+        setUserData(prev => ({
+          ...prev,
+          profilePicture: res.data.profilePicture
+        }));
+        dispatch({
+          type: "UPDATE_USER",
+          payload: {
+            ...user,
+            profilePicture: res.data.profilePicture
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Profile picture upload failed", err);
+      alert("Failed to upload profile picture");
+    } finally {
+      setUploadingPicture(false);
     }
   };
 
@@ -46,6 +118,10 @@ export const Profile = () => {
 
       await api.uploadLicense(formData);
 
+      setUserData(prev => ({
+        ...prev,
+        licenseStatus: "PENDING"
+      }));
       dispatch({
         type: "UPDATE_USER",
         payload: {
@@ -54,6 +130,8 @@ export const Profile = () => {
         },
       });
 
+      setFrontFile(null);
+      setBackFile(null);
       alert("License uploaded successfully. Await admin approval.");
     } catch (err) {
       console.error(err);
@@ -67,7 +145,7 @@ export const Profile = () => {
      STATUS BADGE
   ======================= */
   const renderStatus = () => {
-    switch (user.licenseStatus) {
+    switch (user?.licenseStatus) {
       case "APPROVED":
         return (
           <span className="bg-green-100 text-green-700 px-3 py-1 rounded flex items-center gap-1 text-sm">
@@ -105,9 +183,41 @@ export const Profile = () => {
         {/* LEFT PANEL */}
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-xl border shadow-sm text-center">
-            <div className="w-24 h-24 bg-slate-200 rounded-full mx-auto mb-3 flex items-center justify-center">
-              <User size={40} className="text-slate-400" />
+            {/* Profile Picture */}
+            <div className="relative w-24 h-24 mx-auto mb-3">
+              <div 
+                className="w-24 h-24 rounded-full overflow-hidden bg-slate-200 flex items-center justify-center cursor-pointer group"
+                onClick={handleProfilePictureClick}
+              >
+                {uploadingPicture ? (
+                  <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
+                ) : user.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User size={40} className="text-slate-400" />
+                )}
+                
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="hidden"
+              />
             </div>
+
+            <p className="text-xs text-gray-400 mb-3">Click to change photo</p>
 
             <h2 className="text-xl font-bold">{user.name}</h2>
             <p className="text-sm text-gray-500">{user.email}</p>
@@ -127,16 +237,35 @@ export const Profile = () => {
               </p>
             ) : (
               <>
-                <input
-                  type="file"
-                  onChange={(e) => setFrontFile(e.target.files[0])}
-                  className="w-full mb-3"
-                />
-                <input
-                  type="file"
-                  onChange={(e) => setBackFile(e.target.files[0])}
-                  className="w-full mb-4"
-                />
+                {user.licenseStatus === "REJECTED" && user.licenseRejectionReason && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+                    <p className="font-semibold mb-1">Rejection Reason:</p>
+                    <p>{user.licenseRejectionReason}</p>
+                  </div>
+                )}
+
+                <p className="text-sm text-gray-500 mb-3">
+                  Upload front and back images of your driving license
+                </p>
+
+                <div className="mb-3">
+                  <label className="block text-xs text-gray-500 mb-1">License Front</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setFrontFile(e.target.files[0])}
+                    className="w-full text-sm"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-xs text-gray-500 mb-1">License Back</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setBackFile(e.target.files[0])}
+                    className="w-full text-sm"
+                  />
+                </div>
 
                 <button
                   onClick={handleUpload}
@@ -183,8 +312,8 @@ export const Profile = () => {
                   </div>
 
                   <div className="text-right">
-                    <p className="font-bold">₹{b.totalPrice}</p>
-                    <p className="text-xs text-gray-500">Paid: ₹{b.advancePaid}</p>
+                    <p className="font-bold">₹{b.totalPrice?.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500">Paid: ₹{b.advancePaid?.toLocaleString()}</p>
                     <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
                       {b.status}
                     </span>

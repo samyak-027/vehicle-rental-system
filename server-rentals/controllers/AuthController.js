@@ -30,25 +30,32 @@ export const registerUser = async (req, res) => {
       isAuth: false,
     });
 
-    // Try to send email, but don't fail registration if email fails
+    // Try to send email
     try {
       await transporter.sendMail({
         from: process.env.SENDER_EMAIL || 'noreply@ridesurf.com',
         to: email,
-        subject: "Verify Your Account",
-        text: `Your OTP is ${otp}`,
+        subject: "Verify Your Account - RideSurf",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0ea5e9;">Welcome to RideSurf!</h2>
+            <p>Thank you for registering. Please use the following OTP to verify your email:</p>
+            <div style="background: #f1f5f9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+              <h1 style="color: #0ea5e9; letter-spacing: 8px; margin: 0;">${otp}</h1>
+            </div>
+            <p style="color: #64748b; font-size: 14px;">This OTP will expire in 15 minutes.</p>
+          </div>
+        `,
       });
-      console.log(`OTP sent to ${email}: ${otp}`);
+      console.log(`OTP sent to ${email}`);
     } catch (emailError) {
       console.error('Email sending failed:', emailError.message);
-      console.log(`OTP for ${email}: ${otp} (Email sending failed, check console)`);
     }
 
     res.json({
       success: true,
-      message: "User registered successfully. Check console for OTP if email fails.",
+      message: "Registration successful. Please check your email for OTP.",
       userId: user._id,
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined, // Only show OTP in development
     });
   } catch (err) {
     console.error('Registration error:', err);
@@ -86,7 +93,7 @@ export const verifyEmail = async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     sameSite: "strict",
-    secure: false, // true in production
+    secure: false,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -164,27 +171,134 @@ export const resendOTP = async (req, res) => {
     user.verifyOtpExpireAt = Date.now() + 15 * 60 * 1000;
     await user.save();
 
-    // Try to send email, but don't fail if email fails
     try {
       await transporter.sendMail({
         from: process.env.SENDER_EMAIL || 'noreply@ridesurf.com',
         to: user.email,
-        subject: "Resend OTP",
-        text: `Your new OTP is ${otp}`,
+        subject: "Resend OTP - RideSurf",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0ea5e9;">Your New OTP</h2>
+            <p>Here is your new verification code:</p>
+            <div style="background: #f1f5f9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+              <h1 style="color: #0ea5e9; letter-spacing: 8px; margin: 0;">${otp}</h1>
+            </div>
+            <p style="color: #64748b; font-size: 14px;">This OTP will expire in 15 minutes.</p>
+          </div>
+        `,
       });
-      console.log(`OTP resent to ${user.email}: ${otp}`);
+      console.log(`OTP resent to ${user.email}`);
     } catch (emailError) {
       console.error('Email sending failed:', emailError.message);
-      console.log(`OTP for ${user.email}: ${otp} (Email sending failed, check console)`);
     }
 
     res.json({ 
       success: true, 
-      message: "OTP resent successfully. Check console if email fails.",
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
+      message: "OTP resent successfully. Check your email."
     });
   } catch (err) {
     console.error('Resend OTP error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ================================
+   FORGOT PASSWORD
+================================ */
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Email not found" });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.verifyotp = otp;
+    user.verifyOtpExpireAt = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    try {
+      await transporter.sendMail({
+        from: process.env.SENDER_EMAIL || 'noreply@ridesurf.com',
+        to: email,
+        subject: "Password Reset OTP - RideSurf",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0ea5e9;">Password Reset Request</h2>
+            <p>You requested to reset your password. Use the following OTP:</p>
+            <div style="background: #f1f5f9; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+              <h1 style="color: #0ea5e9; letter-spacing: 8px; margin: 0;">${otp}</h1>
+            </div>
+            <p style="color: #64748b; font-size: 14px;">This OTP will expire in 15 minutes.</p>
+            <p style="color: #64748b; font-size: 14px;">If you didn't request this, please ignore this email.</p>
+          </div>
+        `,
+      });
+      console.log(`Password reset OTP sent to ${email}`);
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError.message);
+      return res.status(500).json({ success: false, message: "Failed to send email" });
+    }
+
+    res.json({ 
+      success: true, 
+      message: "OTP sent to your email"
+    });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ================================
+   RESET PASSWORD
+================================ */
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.verifyotp !== otp || user.verifyOtpExpireAt < Date.now()) {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    user.verifyotp = null;
+    user.verifyOtpExpireAt = null;
+    await user.save();
+
+    // Send confirmation email
+    try {
+      await transporter.sendMail({
+        from: process.env.SENDER_EMAIL || 'noreply@ridesurf.com',
+        to: email,
+        subject: "Password Changed Successfully - RideSurf",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0ea5e9;">Password Changed</h2>
+            <p>Your password has been successfully changed.</p>
+            <p style="color: #64748b; font-size: 14px;">If you didn't make this change, please contact support immediately.</p>
+          </div>
+        `,
+      });
+    } catch (emailError) {
+      console.error('Confirmation email failed:', emailError.message);
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Password reset successfully"
+    });
+  } catch (err) {
+    console.error('Reset password error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as api from "../../services/api.js";
 
@@ -11,52 +11,81 @@ export const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match!");
+      setError("Passwords do not match!");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
-    const success = await api.resetPassword(email, otp, newPassword);
-    setLoading(false);
-
-    if (success) {
-      alert('Password reset successfully! Please login.');
-      navigate('/login');
-    } else {
-      alert('Invalid OTP or Email. Try 123456');
+    
+    try {
+      const response = await api.resetPassword({ email, otp, newPassword });
+      
+      if (response.success) {
+        alert('Password reset successfully! Please login with your new password.');
+        navigate('/login');
+      } else {
+        setError(response.message || 'Failed to reset password');
+      }
+    } catch (err) {
+      console.error('Reset password error:', err);
+      setError(err.response?.data?.message || 'Invalid OTP or failed to reset password.');
+    } finally {
+      setLoading(false);
     }
   };
 
   if (!email) {
-      return (
-          <div className="min-h-screen flex items-center justify-center">
-              <div className="text-center">
-                  <p>Invalid Request. Please start from Forgot Password.</p>
-                  <button onClick={() => navigate('/forgot-password')} className="text-primary underline mt-2">Go Back</button>
-              </div>
-          </div>
-      );
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p>Invalid Request. Please start from Forgot Password.</p>
+          <button 
+            onClick={() => navigate('/forgot-password')} 
+            className="text-primary underline mt-2"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-slate-50 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold text-center mb-4">Set New Password</h2>
-        <p className="text-slate-500 text-center mb-6 text-sm">Enter the OTP sent to <strong>{email}</strong></p>
+        <p className="text-slate-500 text-center mb-6 text-sm">
+          Enter the OTP sent to <strong>{email}</strong>
+        </p>
+        
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700">OTP Code</label>
             <input 
               type="text" 
-              placeholder="123456"
+              placeholder="Enter 6-digit OTP"
               className="mt-1 w-full px-4 py-2 border rounded-lg tracking-widest text-center"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
+              maxLength={6}
               required 
             />
           </div>
@@ -67,6 +96,7 @@ export const ResetPassword = () => {
               className="mt-1 w-full px-4 py-2 border rounded-lg"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              minLength={6}
               required 
             />
           </div>
@@ -77,6 +107,7 @@ export const ResetPassword = () => {
               className="mt-1 w-full px-4 py-2 border rounded-lg"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              minLength={6}
               required 
             />
           </div>
@@ -88,7 +119,15 @@ export const ResetPassword = () => {
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
-        <p className="mt-4 text-xs text-center text-slate-400">Mock OTP: 123456</p>
+
+        <div className="mt-4 text-center">
+          <button 
+            onClick={() => navigate('/forgot-password')}
+            className="text-sm text-slate-500 hover:text-primary"
+          >
+            Didn't receive OTP? Try again
+          </button>
+        </div>
       </div>
     </div>
   );

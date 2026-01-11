@@ -105,7 +105,7 @@ export const Vehicles = () => {
             {/* Vehicle Type */}
             <div>
               <label className="font-bold text-sm mb-2 block">Vehicle Type</label>
-              {['All', 'CAR', 'BIKE', 'SUV', 'BUS', 'BOAT', 'HELICOPTER'].map(type => (
+              {['All', 'CAR', 'BIKE', 'PICKUP', 'BUS', 'BOAT', 'HELICOPTER'].map(type => (
                 <label key={type} className="flex items-center gap-2 text-sm">
                   <input
                     type="radio"

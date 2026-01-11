@@ -102,7 +102,7 @@ function Bookings() {
             <div className="modal-box">
               <h3 className="font-bold text-lg">Cancel Booking?</h3>
               <p className="py-4">
-                Do you want to cancel booking for {(bookingToDelete.vehicle || bookingToDelete.car)?.name || 'this vehicle'}?
+                Do you want to cancel booking for {bookingToDelete.vehicle?.name || 'this vehicle'}?
               </p>
               <div className="modal-action">
                 <button

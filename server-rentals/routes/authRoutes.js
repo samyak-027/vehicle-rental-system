@@ -7,6 +7,8 @@ import {
   logout,
   checkSession,
   refreshToken,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/AuthController.js";
 import { authenticateUser } from "../middleware/authUser.js";
 
@@ -16,6 +18,8 @@ router.post("/register", registerUser);
 router.post("/login", userLogin);
 router.post("/verify-email", verifyEmail);
 router.post("/resend-otp", resendOTP);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 router.post("/logout", logout);
 router.post("/refresh-token", refreshToken);
 router.get("/me", authenticateUser, checkSession);

@@ -114,6 +114,30 @@ export const uploadLicense = async (req, res) => {
 };
 
 /* ============================
+   PROFILE PICTURE UPLOAD
+============================ */
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    user.profilePicture = req.file.path;
+    await user.save();
+
+    res.json({ 
+      success: true, 
+      message: "Profile picture uploaded successfully",
+      profilePicture: user.profilePicture
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ============================
    ADMIN: VERIFY LICENSE
 ============================ */
 export const verifyLicense = async (req, res) => {
@@ -132,16 +156,41 @@ export const verifyLicense = async (req, res) => {
    ADMIN: REJECT LICENSE
 ============================ */
 export const rejectLicense = async (req, res) => {
+  const { reason } = req.body;
   const user = await User.findById(req.params.userId);
 
   if (!user)
     return res.status(404).json({ success: false, message: "User not found" });
 
   user.licenseStatus = "REJECTED";
+  user.licenseRejectionReason = reason || "License rejected by admin";
   user.licenseFront = null;
   user.licenseBack = null;
 
   await user.save();
+
+  // Send rejection email to user
+  try {
+    await transporter.sendMail({
+      from: process.env.SENDER_EMAIL || 'noreply@ridesurf.com',
+      to: user.email,
+      subject: "License Verification Update - RideSurf",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #ef4444;">License Verification Failed</h2>
+          <p>Dear ${user.name},</p>
+          <p>Unfortunately, your license verification was not successful.</p>
+          <div style="background: #fef2f2; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+            <strong>Reason:</strong> ${reason || "License rejected by admin"}
+          </div>
+          <p>Please upload clear images of your valid driving license to continue using our services.</p>
+          <p style="color: #64748b; font-size: 14px;">If you have any questions, please contact our support team.</p>
+        </div>
+      `,
+    });
+  } catch (emailError) {
+    console.error('Rejection email failed:', emailError.message);
+  }
 
   res.json({ success: true, message: "License rejected" });
 };

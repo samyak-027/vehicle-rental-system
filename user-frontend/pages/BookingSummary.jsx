@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/store.jsx';
 import { LicenseStatus } from '../types.js';
@@ -10,6 +9,7 @@ export const BookingSummary = () => {
 
   const vehicle = state.selectedVehicle;
   const search = state.searchParams;
+  const isLoggedIn = state.auth.isAuthenticated;
 
   if (!vehicle) {
     return (
@@ -25,12 +25,52 @@ export const BookingSummary = () => {
     );
   }
 
+  // Check if search params are valid
+  if (!search.fromLocation || !search.toLocation) {
+    return (
+      <div className="p-10 text-center">
+        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg inline-block">
+          <AlertCircle className="inline mr-2" />
+          Please select pickup and drop-off locations.
+        </div>
+        <div className="mt-4">
+          <button
+            onClick={() => navigate('/')}
+            className="text-primary underline"
+          >
+            Go to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!search.startDate || !search.endDate) {
+    return (
+      <div className="p-10 text-center">
+        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg inline-block">
+          <AlertCircle className="inline mr-2" />
+          Please select valid booking dates.
+        </div>
+        <div className="mt-4">
+          <button
+            onClick={() => navigate('/')}
+            className="text-primary underline"
+          >
+            Go to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ---------------------------
   // DATE VALIDATION & CALCULATION
   // ---------------------------
   const start = new Date(search.startDate);
   const end = new Date(search.endDate);
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   // Validation
   if (start < today) {
@@ -38,7 +78,7 @@ export const BookingSummary = () => {
   }
 
   const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-  if (diffDays <= 0) {
+  if (diffDays <= 0 || isNaN(diffDays)) {
     return <div className="p-10 text-center text-red-600">Invalid booking duration.</div>;
   }
 
@@ -53,11 +93,31 @@ export const BookingSummary = () => {
   const totalAmount = diffDays * vehicle.pricePerDay;
   const advanceAmount = totalAmount * 0.2;
 
+  // Check for NaN values
+  if (isNaN(totalAmount) || isNaN(advanceAmount)) {
+    return (
+      <div className="p-10 text-center">
+        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg inline-block">
+          <AlertCircle className="inline mr-2" />
+          Unable to calculate booking amount. Please try again.
+        </div>
+        <div className="mt-4">
+          <button
+            onClick={() => navigate('/')}
+            className="text-primary underline"
+          >
+            Start Over
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ---------------------------
   // HANDLERS
   // ---------------------------
   const handlePayNow = () => {
-    if (!state.auth.isAuthenticated) {
+    if (!isLoggedIn) {
       navigate('/login?redirect=/booking/summary');
       return;
     }
@@ -128,20 +188,20 @@ export const BookingSummary = () => {
         <div className="bg-slate-50 p-6 border-t">
           <div className="flex justify-between mb-2">
             <span>Total Price</span>
-            <span className="font-bold">₹{totalAmount}</span>
+            <span className="font-bold">₹{totalAmount.toLocaleString()}</span>
           </div>
           <div className="flex justify-between mb-4">
             <span>Pay Now (20%)</span>
             <span className="text-xl font-bold text-primary">
-              ₹{advanceAmount}
+              ₹{advanceAmount.toLocaleString()}
             </span>
           </div>
 
           {/* STATUS */}
-          {!state.auth.isAuthenticated ? (
+          {!isLoggedIn ? (
             <div className="bg-yellow-50 text-yellow-800 p-4 rounded flex gap-2">
               <AlertCircle />
-              <span>Please login to continue.</span>
+              <span>Please login to proceed with payment.</span>
             </div>
           ) : state.auth.user?.licenseStatus !== LicenseStatus.APPROVED ? (
             <div className="bg-red-50 text-red-800 p-4 rounded flex gap-2">
@@ -159,9 +219,14 @@ export const BookingSummary = () => {
 
           <button
             onClick={handlePayNow}
-            className="mt-4 w-full bg-primary text-white py-3 rounded-lg hover:bg-sky-600"
+            disabled={!isLoggedIn}
+            className={`mt-4 w-full py-3 rounded-lg ${
+              isLoggedIn 
+                ? 'bg-primary text-white hover:bg-sky-600' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
-            Proceed to Payment
+            {isLoggedIn ? 'Proceed to Payment' : 'Login to Continue'}
           </button>
         </div>
       </div>

@@ -12,6 +12,7 @@ export const LicenseStatus = {
 export const VehicleType = {
   CAR: 'Car',
   BIKE: 'Bike',
+  PICKUP: 'PICKUP',
   SUV: 'SUV',
   BUS: 'Bus',
   BOAT: 'Boat',

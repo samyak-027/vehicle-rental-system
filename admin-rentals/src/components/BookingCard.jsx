@@ -4,9 +4,6 @@ import UpdateBookingIcon from "../assets/edit.svg";
 import CancelBookingIcon from "../assets/cancel-booking.svg";
 
 function BookingCard({ booking, onUpdate, onDelete }) {
-  // Handle both old (car) and new (vehicle) field names
-  const vehicle = booking.vehicle || booking.car;
-  
   return (
     <div className="card bg-base-100 shadow-xl p-4">
       <div className="card-body">
@@ -14,13 +11,13 @@ function BookingCard({ booking, onUpdate, onDelete }) {
           User: {booking.user?.name || 'N/A'} ({booking.user?.email || 'N/A'})
         </p>
         <p>
-          Vehicle: {vehicle?.name || 'N/A'} {vehicle?.year || vehicle?.model || ''}
+          Vehicle: {booking.vehicle?.name || 'N/A'} {booking.vehicle?.model || ''}
         </p>
         <p>Journey Start: {new Date(booking.startDate).toLocaleDateString()}</p>
         <p>Journey End: {new Date(booking.endDate).toLocaleDateString()}</p>
         <p>From: {booking.from}</p>
         <p>To: {booking.to}</p>
-        <p>Total Cost: ₹{booking.totalPrice || booking.totalCost}</p>
+        <p>Total Cost: ₹{booking.totalPrice?.toLocaleString()}</p>
         <p>Status: {booking.status}</p>
         <p>
           Booking Date: {new Date(booking.createdAt).toLocaleDateString()}{" "}

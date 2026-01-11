@@ -13,6 +13,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
 
+    profilePicture: {
+      type: String,
+      default: null,
+    },
+
     password: {
       type: String,
       required: true,
@@ -35,6 +40,11 @@ const userSchema = new mongoose.Schema(
     },
 
     licenseBack: {
+      type: String,
+      default: null,
+    },
+
+    licenseRejectionReason: {
       type: String,
       default: null,
     },

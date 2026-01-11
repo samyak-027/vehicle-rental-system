@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/store.jsx';
-import { Search, MapPin, Calendar, Clock, Star } from 'lucide-react';
+import { LocationSelector } from '../components/LocationSelector.jsx';
+import { Search, Calendar, Clock, Star } from 'lucide-react';
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -27,6 +28,11 @@ export const Home = () => {
   const handleSearch = (e) => {
     e.preventDefault();
 
+    if (!search.fromLocation || !search.toLocation) {
+      alert("Please select pickup and drop-off locations");
+      return;
+    }
+
     if (!search.startDate || !search.endDate) {
       alert("Please select valid dates");
       return;
@@ -48,7 +54,7 @@ export const Home = () => {
   return (
     <div>
       {/* Hero Section */}
-      <div className="relative h-[650px] bg-slate-900 flex items-center justify-center">
+      <div className="relative min-h-[750px] bg-slate-900 flex items-center justify-center py-12">
         <div className="absolute inset-0 overflow-hidden">
           <img 
             src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=2021" 
@@ -63,50 +69,15 @@ export const Home = () => {
           </h1>
 
           <div className="bg-white rounded-xl shadow-2xl p-6 md:p-8">
-            <form onSubmit={handleSearch} className="space-y-4">
+            <form onSubmit={handleSearch} className="space-y-6">
 
-              {/* Locations */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-500">Pick-up Location</label>
-                  <div className="flex items-center border rounded-lg px-3 py-3 bg-slate-50">
-                    <MapPin className="w-5 h-5 text-slate-400 mr-3" />
-                    <select
-                      required
-                      className="bg-transparent w-full focus:outline-none"
-                      value={search.fromLocation}
-                      onChange={(e) => setSearch({ ...search, fromLocation: e.target.value })}
-                    >
-                      <option value="">Select City</option>
-                      <option>New York</option>
-                      <option>Los Angeles</option>
-                      <option>Miami</option>
-                      <option>Las Vegas</option>
-                      <option>Dubai</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-slate-500">Drop-off Location</label>
-                  <div className="flex items-center border rounded-lg px-3 py-3 bg-slate-50">
-                    <MapPin className="w-5 h-5 text-slate-400 mr-3" />
-                    <select
-                      required
-                      className="bg-transparent w-full focus:outline-none"
-                      value={search.toLocation}
-                      onChange={(e) => setSearch({ ...search, toLocation: e.target.value })}
-                    >
-                      <option value="">Select City</option>
-                      <option>New York</option>
-                      <option>Los Angeles</option>
-                      <option>Miami</option>
-                      <option>Las Vegas</option>
-                      <option>Dubai</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
+              {/* Location Selector with API */}
+              <LocationSelector
+                fromValue={search.fromLocation}
+                toValue={search.toLocation}
+                onFromChange={(location) => setSearch(prev => ({ ...prev, fromLocation: location }))}
+                onToChange={(location) => setSearch(prev => ({ ...prev, toLocation: location }))}
+              />
 
               {/* Date & Time */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

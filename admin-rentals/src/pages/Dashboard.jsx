@@ -72,7 +72,7 @@ function Dashboard() {
         <div className="flex justify-between items-center mb-4">
         <div className="flex flex-col">
           <h1 className="text-4xl font-extrabold">Hey, {adminName}</h1>
-          <h1 className="text-2xl font-bold">All Cars</h1>
+          <h1 className="text-2xl font-bold">All Vehicles</h1>
         </div>
 
           <button

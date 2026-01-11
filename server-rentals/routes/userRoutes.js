@@ -8,6 +8,7 @@ import {
   getUserData,
   UpdateProfileCheck,
   uploadLicense,
+  uploadProfilePicture,
   verifyLicense,
   rejectLicense,
 } from "../controllers/UserController.js";
@@ -31,6 +32,13 @@ router.post(
     { name: "licenseBack", maxCount: 1 },
   ]),
   uploadLicense
+);
+
+router.post(
+  "/upload-profile-picture",
+  authenticateUser,
+  upload.single("profilePicture"),
+  uploadProfilePicture
 );
 
 router.delete("/delete", authenticateUser, deleteUser);

@@ -102,6 +102,16 @@ export const refreshToken = async () => {
   return response.data;
 };
 
+export const forgotPassword = async (email) => {
+  const response = await API.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+export const resetPassword = async (data) => {
+  const response = await API.post("/auth/reset-password", data);
+  return response.data;
+};
+
 /* =========================
    VEHICLES
 ========================= */
@@ -133,7 +143,7 @@ export const deleteBooking = (id) =>
 ========================= */
 
 export const getUserProfile = () =>
-  API.get("/users/data");
+  API.get("/users/me");
 
 export const updateProfile = (data) =>
   API.put("/users/update-profile", data);
@@ -143,6 +153,11 @@ export const verifyProfileOTP = (data) =>
 
 export const uploadLicense = (formData) =>
   API.post("/users/upload-license", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const uploadProfilePicture = (formData) =>
+  API.post("/users/upload-profile-picture", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
 
