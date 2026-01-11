@@ -55,7 +55,7 @@ ride-surf/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/samyak-027/ride-surf.git
+git clone https://github.com/samyak-027/vehicle-rental-system.git
 cd ride-surf
 ```
 
