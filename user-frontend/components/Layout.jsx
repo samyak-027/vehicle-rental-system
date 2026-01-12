@@ -130,8 +130,63 @@ export const Layout = ({ children }) => {
       <main className="flex-grow">{children}</main>
 
       {/* FOOTER */}
-      <footer className="bg-secondary text-slate-400 py-6 text-center">
-        <p>© 2025 RideSurf. All rights reserved.</p>
+      <footer className="bg-slate-800 text-slate-300 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            
+            {/* Brand */}
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center gap-2 mb-4">
+                <Car className="h-8 w-8 text-primary" />
+                <span className="font-bold text-xl text-white">RideSurf</span>
+              </div>
+              <p className="text-slate-400 mb-4 max-w-md">
+                Your trusted partner for seamless vehicle rental experiences. 
+                Connecting travelers with the perfect vehicles for their journeys.
+              </p>
+              <p className="text-sm text-slate-500">
+                © 2025 RideSurf. All rights reserved.
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="font-semibold text-white mb-4">Quick Links</h3>
+              <div className="space-y-2">
+                <Link to="/" className="block hover:text-primary transition-colors">
+                  Home
+                </Link>
+                <Link to="/vehicles" className="block hover:text-primary transition-colors">
+                  Vehicles
+                </Link>
+                {state.auth.isAuthenticated && (
+                  <Link to="/profile" className="block hover:text-primary transition-colors">
+                    Profile
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h3 className="font-semibold text-white mb-4">Support</h3>
+              <div className="space-y-2">
+                <Link to="/about-us" className="block hover:text-primary transition-colors">
+                  About Us
+                </Link>
+                <Link to="/support" className="block hover:text-primary transition-colors">
+                  Support
+                </Link>
+                <a 
+                  href="mailto:surfyourride@gmail.com" 
+                  className="block hover:text-primary transition-colors"
+                >
+                  Contact Us
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );
