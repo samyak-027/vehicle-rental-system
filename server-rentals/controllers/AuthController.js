@@ -8,6 +8,36 @@ import {
 } from "../utils/generateTokens.js";
 
 /* ================================
+   CHECK EMAIL AVAILABILITY
+================================ */
+export const checkEmailAvailability = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.json({ 
+        success: false, 
+        available: false, 
+        message: "Email is already registered. Please use a different email or try logging in." 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      available: true, 
+      message: "Email is available" 
+    });
+  } catch (err) {
+    console.error('Email check error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Error checking email availability" 
+    });
+  }
+};
+
+/* ================================
    REGISTER
 ================================ */
 export const registerUser = async (req, res) => {
@@ -113,42 +143,62 @@ export const verifyEmail = async (req, res) => {
    LOGIN
 ================================ */
 export const userLogin = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user)
-    return res.status(401).json({ message: "Invalid credentials" });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found. Please check your email or sign up for a new account." 
+      });
+    }
 
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid)
-    return res.status(401).json({ message: "Invalid credentials" });
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid password. Please check your password and try again." 
+      });
+    }
 
-  if (!user.isAuth)
-    return res.status(403).json({ message: "Verify email first" });
+    if (!user.isAuth) {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Please verify your email first. Check your email for the verification OTP." 
+      });
+    }
 
-  const accessToken = generateAccessToken(user);
-  const refreshToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
 
-  user.refreshToken = refreshToken;
-  await user.save();
+    user.refreshToken = refreshToken;
+    await user.save();
 
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    sameSite: "strict",
-    secure: false,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-  res.json({
-    success: true,
-    token: accessToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      licenseStatus: user.licenseStatus,
-    },
-  });
+    res.json({
+      success: true,
+      token: accessToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        licenseStatus: user.licenseStatus,
+      },
+    });
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: "An error occurred during login. Please try again." 
+    });
+  }
 };
 
 /* ================================
@@ -347,4 +397,65 @@ export const logout = async (req, res) => {
 ================================ */
 export const checkSession = async (req, res) => {
   res.json({ success: true, user: req.user });
+};
+
+/* ================================
+   CONTACT FORM SUBMISSION
+================================ */
+export const submitContactForm = async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "All fields are required" 
+      });
+    }
+
+    // Send email to support team
+    await transporter.sendMail({
+      from: process.env.SENDER_EMAIL || 'noreply@ridesurf.com',
+      to: 'surfyourride@gmail.com',
+      subject: `Contact Form: ${subject}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #0ea5e9;">New Contact Form Submission</h2>
+          <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+          </div>
+          <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h3 style="margin-top: 0;">Message:</h3>
+            <p style="white-space: pre-wrap;">${message}</p>
+          </div>
+          <p style="margin-top: 20px; color: #059669;"><strong>Reply to:</strong> ${email}</p>
+        </div>
+      `,
+    });
+
+    // Send confirmation to user
+    await transporter.sendMail({
+      from: process.env.SENDER_EMAIL || 'noreply@ridesurf.com',
+      to: email,
+      subject: "We received your message - RideSurf",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #0ea5e9;">Thank you for contacting us!</h2>
+          <p>Dear ${name},</p>
+          <p>We have received your message and will get back to you within 24 hours.</p>
+          <p style="color: #64748b;">Best regards,<br>RideSurf Support Team</p>
+        </div>
+      `,
+    });
+
+    res.json({ success: true, message: "Message sent successfully!" });
+  } catch (err) {
+    console.error('Contact form error:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to send message. Please email us directly at surfyourride@gmail.com" 
+    });
+  }
 };
