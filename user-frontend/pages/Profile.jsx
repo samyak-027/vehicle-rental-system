@@ -1,11 +1,14 @@
 import { useEffect, useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useStore } from "../context/store.jsx";
 import * as api from "../services/api.js";
 import { Check, Clock, XCircle, User, Camera, Loader2 } from "lucide-react";
 
 export const Profile = () => {
   const { state, dispatch } = useStore();
+  const location = useLocation();
   const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [frontFile, setFrontFile] = useState(null);
@@ -19,11 +22,12 @@ export const Profile = () => {
      FETCH USER DATA & BOOKINGS
   ======================= */
   useEffect(() => {
+    // Fetch data every time user navigates to profile page
     if (state.auth.user) {
       fetchUserData();
       fetchBookings();
     }
-  }, [state.auth.user]);
+  }, [location.pathname, state.auth.user?.id]); // Re-fetch when route changes or user changes
 
   const fetchUserData = async () => {
     try {
@@ -42,10 +46,14 @@ export const Profile = () => {
 
   const fetchBookings = async () => {
     try {
+      setBookingsLoading(true);
       const res = await api.getMyBookings();
       setBookings(res.data.bookings || []);
     } catch (err) {
       console.error("Failed to fetch bookings", err);
+      setBookings([]); // Set empty array on error
+    } finally {
+      setBookingsLoading(false);
     }
   };
 
@@ -283,9 +291,22 @@ export const Profile = () => {
         <div className="md:col-span-2">
           <h2 className="text-2xl font-bold mb-6">My Bookings</h2>
 
-          {bookings.length === 0 ? (
+          {bookingsLoading ? (
             <div className="bg-white p-6 rounded-lg border text-center">
-              No bookings yet.
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Loading bookings...</span>
+              </div>
+            </div>
+          ) : bookings.length === 0 ? (
+            <div className="bg-white p-6 rounded-lg border text-center">
+              <p className="text-gray-500 mb-4">No bookings yet.</p>
+              <a 
+                href="/vehicles" 
+                className="text-primary hover:underline font-medium"
+              >
+                Browse vehicles to make your first booking
+              </a>
             </div>
           ) : (
             <div className="space-y-4">
