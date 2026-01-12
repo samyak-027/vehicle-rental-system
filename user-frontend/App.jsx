@@ -13,6 +13,8 @@ import { Vehicles } from './pages/Vehicles.jsx';
 import { BookingSummary } from './pages/BookingSummary.jsx';
 import { Payment } from './pages/Payment.jsx';
 import { Profile } from './pages/Profile.jsx';
+import { AboutUs } from './pages/AboutUs.jsx';
+import { Support } from './pages/Support.jsx';
 
 // Guest Route - redirects to home if already logged in
 const GuestRoute = ({ children }) => {
@@ -32,6 +34,8 @@ const AppRoutes = () => {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/vehicles" element={<Vehicles />} />
+                <Route path="/about-us" element={<AboutUs />} />
+                <Route path="/support" element={<Support />} />
                 
                 {/* Auth - Guest only (redirect if logged in) */}
                 <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
