@@ -156,6 +156,41 @@ export const createBooking = async (req, res) => {
 };
 
 /* ===========================
+   UPDATE BOOKING STATUSES
+   Auto-update based on dates
+=========================== */
+const updateBookingStatuses = async (bookings) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (const booking of bookings) {
+    const startDate = new Date(booking.startDate);
+    const endDate = new Date(booking.endDate);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    let newStatus = booking.status;
+
+    // Determine correct status based on dates
+    if (today > endDate) {
+      newStatus = "COMPLETED";
+    } else if (today >= startDate && today <= endDate) {
+      newStatus = "ONGOING";
+    } else if (today < startDate) {
+      newStatus = "UPCOMING";
+    }
+
+    // Update if status changed
+    if (newStatus !== booking.status) {
+      booking.status = newStatus;
+      await booking.save();
+    }
+  }
+
+  return bookings;
+};
+
+/* ===========================
    USER BOOKINGS
 =========================== */
 export const getMyBookings = async (req, res) => {
@@ -163,6 +198,9 @@ export const getMyBookings = async (req, res) => {
     const bookings = await Booking.find({ user: req.user.id })
       .populate("vehicle")
       .sort({ createdAt: -1 });
+
+    // Auto-update booking statuses based on dates
+    await updateBookingStatuses(bookings);
 
     res.json({ success: true, bookings });
   } catch (err) {
@@ -180,6 +218,9 @@ export const getAllBookings = async (req, res) => {
       .populate("user", "name email")
       .populate("vehicle")
       .sort({ createdAt: -1 });
+
+    // Auto-update booking statuses based on dates
+    await updateBookingStatuses(bookings);
 
     res.json({ success: true, bookings });
   } catch (err) {
