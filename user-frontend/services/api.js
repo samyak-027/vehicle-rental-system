@@ -30,15 +30,32 @@ API.interceptors.request.use(
    → Auto Refresh Token
 ============================ */
 
+// List of auth endpoints that should NOT trigger token refresh
+const authEndpoints = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/verify-email',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/check-email',
+  '/auth/resend-otp',
+  '/auth/refresh-token'
+];
+
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
 
-    // Prevent infinite loop
+    // Skip token refresh for auth endpoints (login, register, etc.)
+    const isAuthEndpoint = authEndpoints.some(endpoint => requestUrl.includes(endpoint));
+
+    // Only attempt refresh for 401 errors on protected routes
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !isAuthEndpoint
     ) {
       originalRequest._retry = true;
 
@@ -109,6 +126,16 @@ export const forgotPassword = async (email) => {
 
 export const resetPassword = async (data) => {
   const response = await API.post("/auth/reset-password", data);
+  return response.data;
+};
+
+export const checkEmailAvailability = async (email) => {
+  const response = await API.post("/auth/check-email", { email });
+  return response.data;
+};
+
+export const submitContactForm = async (data) => {
+  const response = await API.post("/auth/contact", data);
   return response.data;
 };
 
