@@ -171,13 +171,13 @@ export const AboutUs = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="/vehicles"
+              href="/#/vehicles"
               className="bg-primary text-white px-8 py-3 rounded-lg hover:bg-sky-600 font-semibold"
             >
               Browse Vehicles
             </a>
             <a
-              href="/support"
+              href="/#/support"
               className="border border-primary text-primary px-8 py-3 rounded-lg hover:bg-primary hover:text-white font-semibold"
             >
               Get Support
