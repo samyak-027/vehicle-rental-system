@@ -4,7 +4,7 @@ import { Squash as Hamburger } from "hamburger-react"; // hamburger-react
 import { slide as Menu } from "react-burger-menu"; // react-burger-menu
 import { setTheme, getTheme } from "../utils/themeUtils";
 // import "react-burger-menu/lib/menus/slide.css";
-import axios from "axios";
+import API from "../services/api";
 
 function AdminNavbar() {
   const navigate = useNavigate();
@@ -29,11 +29,7 @@ function AdminNavbar() {
   // Logout function (calls backend and then navigates to login)
   const handleLogout = async () => {
     try {
-      await axios.post(
-        "http://localhost:5007/api/admin/logout",
-        {},
-        { withCredentials: true }
-      );
+      await API.post("/admin/logout");
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Logout failed:", error);

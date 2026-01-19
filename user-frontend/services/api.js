@@ -5,7 +5,7 @@ import axios from "axios";
 ============================ */
 
 const API = axios.create({
-  baseURL: "http://localhost:5007/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5007/api",
   withCredentials: true, // needed for refresh token cookie
 });
 

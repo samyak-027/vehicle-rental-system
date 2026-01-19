@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import API from '../services/api';
 
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
@@ -8,9 +8,7 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get('http://localhost:5007/api/admin/check-auth', {
-          withCredentials: true
-        });
+        const response = await API.get('/admin/check-auth');
         console.log(response.data);
         if (!response.data.isAuthenticated) {
           navigate('/login', { replace: true });

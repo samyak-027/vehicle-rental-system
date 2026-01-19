@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
 import Loader from "../components/Loader";
 import { getCountries, getStates, getCities } from "../services/locationApi";
+import { fetchAPI, API_BASE_URL } from "../services/api";
 import { ChevronDown, Search, Loader2 } from "lucide-react";
 
 // Custom Dropdown Component
@@ -205,8 +206,8 @@ function BookingForm() {
     const fetchData = async () => {
       try {
         const [carsResponse, usersResponse] = await Promise.all([
-          fetch("http://localhost:5007/api/cars/for-booking", { credentials: "include" }),
-          fetch("http://localhost:5007/api/users/for-booking", { credentials: "include" }),
+          fetchAPI("/cars/for-booking"),
+          fetchAPI("/users/for-booking"),
         ]);
 
         if (!carsResponse.ok) throw new Error("Failed to fetch cars");
@@ -221,9 +222,7 @@ function BookingForm() {
         setUsers(Array.isArray(usersData.users) ? usersData.users : usersData);
 
         if (bookingId) {
-          const bookingRes = await fetch(`http://localhost:5007/api/bookings/${bookingId}`, {
-            credentials: "include"
-          });
+          const bookingRes = await fetchAPI(`/bookings/${bookingId}`);
           if (!bookingRes.ok) throw new Error("Failed to fetch booking");
           const bookingData = await bookingRes.json();
           const booking = bookingData.booking || bookingData;
@@ -258,9 +257,8 @@ function BookingForm() {
       }
 
       try {
-        const response = await fetch("http://localhost:5007/api/cars/available", {
+        const response = await fetchAPI("/cars/available", {
           method: "POST",
-          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             startDate: bookingData.startDate,
@@ -312,13 +310,12 @@ function BookingForm() {
     };
 
     const endpoint = bookingId
-      ? `http://localhost:5007/api/bookings/update/${bookingId}`
-      : "http://localhost:5007/api/bookings/admin-booking";
+      ? `/bookings/update/${bookingId}`
+      : "/bookings/admin-booking";
 
     try {
-      const res = await fetch(endpoint, {
+      const res = await fetchAPI(endpoint, {
         method: bookingId ? "PUT" : "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submissionData),
       });

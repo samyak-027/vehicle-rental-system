@@ -5,6 +5,7 @@ import CarCard from '../components/CarCard';
 import Loader from '../components/Loader';
 import Skeleton from '../components/Skeleton';
 import AddCarIcon from '../assets/add-car.svg';
+import { fetchAPI } from '../services/api';
 
 function Dashboard() {
   const [adminName, setAdminName] = useState('');
@@ -15,10 +16,7 @@ function Dashboard() {
 
   // Fetch admin name
   useEffect(() => {
-    fetch('http://localhost:5007/api/admin/profile', {
-      method: 'GET',
-      credentials: 'include', // Ensures cookies are sent
-    })
+    fetchAPI('/admin/profile')
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -33,7 +31,7 @@ function Dashboard() {
       setSkeleton(false);
     }, 2000);
 
-    fetch('http://localhost:5007/api/cars/getCars')
+    fetchAPI('/cars/getCars')
       .then((res) => res.json())
       .then((data) => {
         setTimeout(() => {
@@ -50,10 +48,7 @@ function Dashboard() {
   }, []);
 
   const handleDeleteCar = (carId) => {
-    fetch(`http://localhost:5007/api/cars/${carId}`, { 
-      method: 'DELETE',
-      credentials: 'include'
-    })
+    fetchAPI(`/cars/${carId}`, { method: 'DELETE' })
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {

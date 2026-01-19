@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
-import axios from "axios";
+import API from "../services/api";
 import { getTheme, setTheme } from "../utils/themeUtils";
 
 function AdminLogin() {
@@ -22,10 +22,9 @@ function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5007/api/admin/login",
-        { email, password },
-        { withCredentials: true }
+      const response = await API.post(
+        "/admin/login",
+        { email, password }
       );
       if (response.data.success) {
         navigate("/dashboard");

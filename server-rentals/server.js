@@ -31,8 +31,8 @@ app.use(session({
   }),
   cookie: {
     httpOnly: true,
-    secure: false, // true if using HTTPS in production
-    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production', // true in production (HTTPS)
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site cookies
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   }
 }));
@@ -41,11 +41,23 @@ app.use(session({
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
-
-];
+  // Add your production URLs here
+  process.env.USER_FRONTEND_URL,
+  process.env.ADMIN_FRONTEND_URL,
+].filter(Boolean); // Remove undefined values
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],

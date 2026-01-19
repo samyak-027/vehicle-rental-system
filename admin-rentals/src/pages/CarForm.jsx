@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
 import Loader from "../components/Loader";
+import { fetchAPI, API_BASE_URL } from "../services/api";
 
 function CarForm() {
   const { carId } = useParams();
@@ -33,9 +34,7 @@ function CarForm() {
 
     const fetchCar = async () => {
       try {
-        const res = await fetch(
-          `http://localhost:5007/api/cars/${carId}`
-        );
+        const res = await fetchAPI(`/cars/${carId}`);
         const data = await res.json();
 
         setCarData({
@@ -121,14 +120,13 @@ function CarForm() {
     });
 
     const endpoint = carId
-      ? `http://localhost:5007/api/cars/${carId}`
-      : `http://localhost:5007/api/cars/add-car`;
+      ? `/cars/${carId}`
+      : `/cars/add-car`;
 
     try {
-      const res = await fetch(endpoint, {
+      const res = await fetchAPI(endpoint, {
         method: carId ? "PUT" : "POST",
         body: formData,
-        credentials: "include",
       });
 
       const data = await res.json();

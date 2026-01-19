@@ -5,6 +5,7 @@ import AdminNavbar from "../components/AdminNavbar";
 import Loader from "../components/Loader";
 import BookingCard from "../components/BookingCard";
 import CreateBookingIcon from "../assets/edit.svg";
+import { fetchAPI } from "../services/api";
 
 function Bookings() {
   const [bookings, setBookings] = useState([]);
@@ -14,7 +15,7 @@ function Bookings() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5007/api/bookings/allBookings", { credentials: "include" })
+    fetchAPI("/bookings/allBookings")
       .then((res) => res.json())
       .then((data) => {
         console.log("Bookings response:", data);
@@ -36,10 +37,7 @@ function Bookings() {
   }, []);
 
   const handleDeleteBooking = (bookingId) => {
-    fetch(`http://localhost:5007/api/bookings/${bookingId}`, {
-      method: "DELETE",
-      credentials: "include",
-    })
+    fetchAPI(`/bookings/${bookingId}`, { method: "DELETE" })
       .then((res) => res.json())
       .then(() => {
         setBookings((prev) => prev.filter((b) => b._id !== bookingId));

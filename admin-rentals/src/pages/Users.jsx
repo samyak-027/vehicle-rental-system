@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
 import Loader from "../components/Loader";
-import axios from "axios";
+import API, { fetchAPI } from "../services/api";
 import { X } from "lucide-react";
 
 // Rejection Modal Component
@@ -128,7 +128,7 @@ function Users() {
 
   const fetchUsers = () => {
     setLoading(true);
-    fetch("http://localhost:5007/api/users/getAllusers", { credentials: "include" })
+    fetchAPI("/users/getAllusers")
       .then((res) => {
         if (!res.ok) {
           throw new Error("Network response was not ok");
@@ -164,11 +164,7 @@ function Users() {
     setProcessing(userId);
 
     try {
-      const res = await axios.patch(
-        `http://localhost:5007/api/users/verify-license/${userId}`,
-        {},
-        { withCredentials: true }
-      );
+      const res = await API.patch(`/users/verify-license/${userId}`);
       if (res.data.success) {
         alert("User verified successfully!");
         fetchUsers();
@@ -201,11 +197,7 @@ function Users() {
     setProcessing(userId);
 
     try {
-      const res = await axios.patch(
-        `http://localhost:5007/api/users/reject-license/${userId}`,
-        { reason },
-        { withCredentials: true }
-      );
+      const res = await API.patch(`/users/reject-license/${userId}`, { reason });
       if (res.data.success) {
         closeRejectionModal();
         fetchUsers();

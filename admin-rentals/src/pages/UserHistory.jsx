@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import AdminNavbar from "../components/AdminNavbar";
 import Loader from "../components/Loader";
+import { fetchAPI } from "../services/api";
 
 function UserHistory() {
   const { userId } = useParams();
@@ -12,7 +13,7 @@ function UserHistory() {
 
   useEffect(() => {
     // Fetch all bookings and filter by userId
-    fetch("http://localhost:5007/api/bookings/allBookings", { credentials: "include" })
+    fetchAPI("/bookings/allBookings")
       .then((res) => res.json())
       .then((data) => {
         console.log("Bookings data:", data);
@@ -30,7 +31,7 @@ function UserHistory() {
       });
 
     // Fetch user info for header display
-    fetch(`http://localhost:5007/api/users/${userId}`, { credentials: "include" })
+    fetchAPI(`/users/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
