@@ -64,11 +64,10 @@ export const adminLogin = async (req, res) => {
     );
     res.cookie('adminToken', token, {
       httpOnly: true,
-      //secure: false,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain: 'localhost',
+      // Remove domain restriction for cross-origin requests
       path: '/',
     });
     res.json({ success: true, message: 'Admin login successful' });
@@ -98,7 +97,7 @@ export const adminLogout = async (req, res) => {
     res.clearCookie('adminToken', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
     });
 
     res.json({ success: true, message: 'Admin logged out successfully' });
