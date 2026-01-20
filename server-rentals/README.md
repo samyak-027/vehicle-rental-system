@@ -61,10 +61,10 @@ CLOUDINARY_CLOUD_NAME=your-cloudinary-name
 CLOUDINARY_API_KEY=your-cloudinary-api-key
 CLOUDINARY_API_SECRET=your-cloudinary-api-secret
 
-# Email Service (Gmail)
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-gmail-app-password
-SENDER_EMAIL=noreply@ridesurf.com
+# Brevo Email Service Configuration
+SMTP_USER = your-brevo-smtp-user
+SMTP_PASS = your-brevo-smtp-password
+SENDER_EMAIL = your-email@gmail.com
 
 # Server
 PORT=5007
