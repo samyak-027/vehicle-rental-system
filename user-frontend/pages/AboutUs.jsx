@@ -1,5 +1,5 @@
 import { Car, Users, Shield, Clock, MapPin, Star } from 'lucide-react';
-import { HashRouter as Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 export const AboutUs = () => {
   return (
